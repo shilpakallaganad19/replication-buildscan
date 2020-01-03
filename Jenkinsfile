@@ -1,12 +1,14 @@
 pipeline {
     agent any
+    environment {
+    MAVEN_HOME = '/usr/share/maven'
+    }
     stages {
         stage ('Clone') {
             steps {
                 git branch: 'master', url: "https://github.com/jfrog/project-examples.git"
             }
         }
-
         stage ('Artifactory configuration') {
             steps {
                 rtServer (
@@ -34,7 +36,6 @@ pipeline {
         stage ('Exec Maven') {
             steps {
                 rtMavenRun (
-                    tool: maven, // Tool name from Jenkins configuration
                     pom: 'maven-example/pom.xml',
                     goals: 'clean install -U',
                     deployerId: "MAVEN_DEPLOYER",
