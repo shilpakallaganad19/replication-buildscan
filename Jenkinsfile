@@ -13,7 +13,7 @@ pipeline {
             steps {
                 rtServer (
                     id: "tata-art",
-                    url: "http://34.93.32.31:8081/artifactory",
+                    url: "http://10.160.0.89:8081/artifactory",
                     credentialsId: "CREDENTIALS"
                 )
 
