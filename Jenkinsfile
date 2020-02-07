@@ -2,7 +2,7 @@
 
 properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '7']]])
 
-node('devops-nl1') {
+node {
   def server = Artifactory.server 'Artifactory'
   def rtMaven = Artifactory.newMavenBuild()
 
