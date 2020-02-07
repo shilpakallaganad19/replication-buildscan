@@ -1,64 +1,44 @@
-pipeline {
-    agent any
+#!/usr/bin/env groovy
+
+properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '7']]])
+
+node('devops-nl1') {
+  def server = Artifactory.server 'Artifactory'
+  def rtMaven = Artifactory.newMavenBuild()
+
     environment {
-    MAVEN_HOME = '/usr/share/maven'
+        MAVEN_HOME = '/usr/share/maven'
     }
-    stages {
-        stage ('Clone') {
-            steps {
-                git branch: 'master', url: "https://github.com/jfrog/project-examples.git"
-            }
-        }
-        stage ('Artifactory configuration') {
-            steps {
-                rtServer (
-                    id: "tata-art",
-                    url: "http://10.160.0.89:8081/artifactory",
-                    credentialsId: "CREDENTIALS"
-                )
 
-                rtMavenDeployer (
-                    id: "MAVEN_DEPLOYER",
-                    serverId: "tata-art",
-                    releaseRepo: "libs-release-local",
-                    snapshotRepo: "libs-snapshot-local"
-                )
+  stage('Clone Git Repository') {
+    checkout scm
+  }
 
-                rtMavenResolver (
-                    id: "MAVEN_RESOLVER",
-                    serverId: "tata-art",
-                    releaseRepo: "libs-release",
-                    snapshotRepo: "libs-snapshot"
-                )
-            }
-        }
+  stage('Set Build Number') {
+    props = readProperties file:"version_info"
+    currentBuild.displayName = "#${currentBuild.number}-${props['BRANCH']}-${props['VERSION']}"
+    artifactVersion = "${props['TAG_NAME']}${(props['BRANCH'] != "master" ? "-SNAPSHOT" : "")}".toString()
+  }
 
-        stage ('Exec Maven') {
-            steps {
-                rtMavenRun (
-                    pom: 'maven-example/pom.xml',
-                    goals: 'clean install -U',
-                    deployerId: "MAVEN_DEPLOYER",
-                    resolverId: "MAVEN_RESOLVER"
-                )
-            }
-        }
+  stage ('Artifactory configuration') {
+    rtMaven.tool = 'maven'
+    rtMaven.resolver server: server, releaseRepo: "maven", snapshotRepo: "maven"
+    rtMaven.deployer releaseRepo: 'maven-release-local', snapshotRepo: 'maven-snapshot-local', server: server
+    rtMaven.deployer.deployArtifacts = false // Disable artifacts deployment during Maven run
+    buildInfo = Artifactory.newBuildInfo()
+  }
 
-        stage ('Publish build info') {
-            steps {
-                rtPublishBuildInfo (
-                    serverId: "tata-art"
-                )
-            }
-        }
+  stage ('Maven Compile') {
+    rtMaven.run pom: 'pom.xml', goals: "verify -Dbuild.version="+artifactVersion, buildInfo: buildInfo
+  }
 
-        stage ('Xray scan') {
-            steps {
-                xrayScan (
-                    serverId: "tata-art",
-                    failBuild: false
-                )
-            }
-        }
-    }
+  stage ('Deploy') {
+    rtMaven.deployer.deployArtifacts buildInfo
+  }
+
+  stage ('Publish build info') {
+     server.publishBuildInfo buildInfo
+  }
+
+  deleteDir()
 }
