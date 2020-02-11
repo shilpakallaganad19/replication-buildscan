@@ -29,7 +29,7 @@ node {
   }
 
   stage ('Maven Compile') {
-    rtMaven.run pom: 'project-examples/pom.xml', goals: "verify -Dbuild.version="+artifactVersion, buildInfo: buildInfo
+    rtMaven.run pom: 'maven-example/pom.xml', goals: "verify -Dbuild.version="+artifactVersion, buildInfo: buildInfo
   }
 
   stage ('Deploy') {
