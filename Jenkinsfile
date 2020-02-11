@@ -23,7 +23,7 @@ node {
   stage ('Artifactory configuration') {
     rtMaven.tool = 'maven'
     rtMaven.resolver server: server, releaseRepo: "maven", snapshotRepo: "maven"
-    rtMaven.deployer releaseRepo: 'maven-release-local', snapshotRepo: 'maven-snapshot-local', server: server
+    rtMaven.deployer releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local', server: server
     rtMaven.deployer.deployArtifacts = false // Disable artifacts deployment during Maven run
     buildInfo = Artifactory.newBuildInfo()
   }
