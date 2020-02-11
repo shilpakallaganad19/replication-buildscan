@@ -15,7 +15,7 @@ node {
   }
 
   stage('Set Build Number') {
-    props = readProperties file:"version_info"
+    props = readProperties file:"/home/tataraov/version_info"
     currentBuild.displayName = "#${currentBuild.number}-${props['BRANCH']}-${props['VERSION']}"
     artifactVersion = "${props['TAG_NAME']}${(props['BRANCH'] != "master" ? "-SNAPSHOT" : "")}".toString()
   }
