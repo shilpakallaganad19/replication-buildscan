@@ -11,7 +11,7 @@ node {
     }
 
   stage('Clone Git Repository') {
-    checkout scm
+    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/jfrog/project-examples.git']]])
   }
 
   stage('Set Build Number') {
