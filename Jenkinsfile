@@ -3,7 +3,7 @@
 properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', numToKeepStr: '7']]])
 
 node {
-  def server = Artifactory.server 'Artifactory'
+  def server = Artifactory.server 'Artifactory-Shilpa'
   def rtMaven = Artifactory.newMavenBuild()
 
     environment {
